@@ -1,24 +1,26 @@
 import os
 import discord
-import openai
+import google.generativeai as genai
 from discord.ext import commands
 
 # Lấy biến môi trường từ Railway
 DISCORD_BOT_TOKEN = os.getenv("DISCORD_BOT_TOKEN")
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 
 # Kiểm tra token
 if not DISCORD_BOT_TOKEN:
     raise ValueError("⚠️ DISCORD_BOT_TOKEN không được tìm thấy trong biến môi trường!")
-if not OPENAI_API_KEY:
-    raise ValueError("⚠️ OPENAI_API_KEY không được tìm thấy trong biến môi trường!")
+if not GOOGLE_API_KEY:
+    raise ValueError("⚠️ GOOGLE_API_KEY không được tìm thấy trong biến môi trường!")
+
+# Cấu hình Google Gemini API
+genai.configure(api_key=GOOGLE_API_KEY)
 
 # Cấu hình bot với intents mở rộng
 intents = discord.Intents.default()
 intents.messages = True  # Bật quyền đọc tin nhắn
 intents.message_content = True  # Bật quyền đọc nội dung tin nhắn
 client = commands.Bot(command_prefix="!", intents=intents)
-openai_client = openai.OpenAI(api_key=OPENAI_API_KEY)
 
 @client.event
 async def on_ready():
@@ -36,15 +38,13 @@ async def on_message(message):
             return
         
         try:
-            response = openai_client.chat.completions.create(
-                model="gpt-3.5-turbo",
-                messages=[{"role": "user", "content": user_input}]
-            )
-            reply = response.choices[0].message.content
+            model = genai.GenerativeModel("gemini-pro")
+            response = model.generate_content(user_input)
+            reply = response.text if response.text else "⚠️ Không nhận được phản hồi từ API."
             await message.channel.send(reply)
         except Exception as e:
-            print(f"❌ Lỗi OpenAI API: {e}")
-            await message.channel.send("⚠️ Bot gặp lỗi khi gọi API OpenAI. Hãy thử lại sau!")
+            print(f"❌ Lỗi Google Gemini API: {e}")
+            await message.channel.send("⚠️ Bot gặp lỗi khi gọi API Google Gemini. Hãy thử lại sau!")
     else:
         await message.channel.send("🤖 Xin chào! Hãy dùng lệnh `!ask` để hỏi tôi.")
 
