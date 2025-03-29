@@ -5,13 +5,13 @@ from discord.ext import commands
 
 # Lấy biến môi trường từ Railway
 DISCORD_BOT_TOKEN = os.getenv("DISCORD_BOT_TOKEN")
-MISTRAL_API_KEY = os.getenv("MISTRAL_API_KEY")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 # Kiểm tra token
 if not DISCORD_BOT_TOKEN:
     raise ValueError("⚠️ DISCORD_BOT_TOKEN không được tìm thấy trong biến môi trường!")
-if not MISTRAL_API_KEY:
-    raise ValueError("⚠️ MISTRAL_API_KEY không được tìm thấy trong biến môi trường!")
+if not OPENAI_API_KEY:
+    raise ValueError("⚠️ OPENAI_API_KEY không được tìm thấy trong biến môi trường!")
 
 # Cấu hình bot với intents mở rộng
 intents = discord.Intents.default()
@@ -34,9 +34,9 @@ async def ask(ctx, *, user_input: str = None):
         return
     
     try:
-        url = "https://api.mistral.ai/v1/chat/completions"
-        headers = {"Authorization": f"Bearer {MISTRAL_API_KEY}", "Content-Type": "application/json"}
-        payload = {"model": "codestral-latest", "messages": [{"role": "user", "content": user_input}]}
+        url = "https://api.openai.com/v1/chat/completions"
+        headers = {"Authorization": f"Bearer {OPENAI_API_KEY}", "Content-Type": "application/json"}
+        payload = {"model": "gpt-4o", "messages": [{"role": "user", "content": user_input}]}
         
         response = requests.post(url, json=payload, headers=headers)
         data = response.json()
@@ -44,8 +44,8 @@ async def ask(ctx, *, user_input: str = None):
         reply = data.get("choices", [{}])[0].get("message", {}).get("content", "⚠️ Không nhận được phản hồi từ API.")
         await ctx.send(reply)
     except Exception as e:
-        print(f"❌ Lỗi Mistral API: {e}")
-        await ctx.send("⚠️ Bot gặp lỗi khi gọi API Mistral. Hãy thử lại sau!")
+        print(f"❌ Lỗi OpenAI API: {e}")
+        await ctx.send("⚠️ Bot gặp lỗi khi gọi API OpenAI. Hãy thử lại sau!")
 
 # Chạy bot
 if __name__ == "__main__":
