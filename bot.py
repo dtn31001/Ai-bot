@@ -3,31 +3,15 @@ import discord
 import requests
 from discord.ext import commands
 
-# URL API để lấy API Key
-API_KEY_SERVER_URL = "http://195.179.229.119/gpt/api.php?api_key_request=true"
-
-# Hàm lấy API Key từ server
-def get_openai_api_key():
-    try:
-        response = requests.get(API_KEY_SERVER_URL)
-        response.raise_for_status()
-        data = response.json()
-        return data.get("api_key", None)
-    except requests.RequestException as e:
-        print(f"⚠️ Lỗi khi lấy API Key: {e}")
-        return None
-
-# Lấy API Key từ server
-OPENAI_API_KEY = get_openai_api_key()
-
 # Lấy biến môi trường từ Railway
 DISCORD_BOT_TOKEN = os.getenv("DISCORD_BOT_TOKEN")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 # Kiểm tra token
 if not DISCORD_BOT_TOKEN:
     raise ValueError("⚠️ DISCORD_BOT_TOKEN không được tìm thấy trong biến môi trường!")
 if not OPENAI_API_KEY:
-    raise ValueError("⚠️ OPENAI_API_KEY không được lấy từ server!")
+    raise ValueError("⚠️ OPENAI_API_KEY không được tìm thấy trong biến môi trường!")
 
 # Cấu hình bot với intents mở rộng
 intents = discord.Intents.default()
@@ -50,14 +34,16 @@ async def ask(ctx, *, user_input: str = None):
         return
     
     try:
-        api_url = f"http://195.179.229.119/gpt/api.php?prompt={requests.utils.quote(user_input)}&api_key={requests.utils.quote(OPENAI_API_KEY)}&model=gpt-3.5-turbo"
-        response = requests.get(api_url)
-        response.raise_for_status()
+        url = "https://api.openai.com/v1/chat/completions"
+        headers = {"Authorization": f"Bearer {OPENAI_API_KEY}", "Content-Type": "application/json"}
+        payload = {"model": "gpt-4", "messages": [{"role": "user", "content": user_input}]}
+        
+        response = requests.post(url, json=payload, headers=headers)
         data = response.json()
         
-        reply = data.get("response", "⚠️ Không nhận được phản hồi từ API.")
+        reply = data.get("choices", [{}])[0].get("message", {}).get("content", "⚠️ Không nhận được phản hồi từ API.")
         await ctx.send(reply)
-    except requests.RequestException as e:
+    except Exception as e:
         print(f"❌ Lỗi OpenAI API: {e}")
         await ctx.send("⚠️ Bot gặp lỗi khi gọi API OpenAI. Hãy thử lại sau!")
 
