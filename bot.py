@@ -23,41 +23,32 @@ client = commands.Bot(command_prefix="!", intents=intents)
 async def on_ready():
     print(f"✅ Bot đã đăng nhập thành công với tên: {client.user}")
 
-@client.event
-async def on_message(message):
-    if message.author == client.user:
+@client.command()
+async def ask(ctx, *, user_input: str = None):
+    if not user_input:
+        await ctx.send("⚠️ Vui lòng nhập câu hỏi sau lệnh !ask")
         return
     
-    if message.content.lower().startswith("!ask"):
-        user_input = message.content[5:].strip()
-        if not user_input:
-            await message.channel.send("⚠️ Vui lòng nhập câu hỏi sau lệnh !ask")
-            return
+    if "bạn được tạo từ ai" in user_input.lower():
+        await ctx.send("Tôi được tạo ra bởi Đỗ Anh Tuấn.")
+        return
+    
+    try:
+        url = "https://api.mistral.ai/v1/chat/completions"
+        headers = {"Authorization": f"Bearer {MISTRAL_API_KEY}", "Content-Type": "application/json"}
+        payload = {"model": "mistral-7b-instruct", "messages": [{"role": "user", "content": user_input}]}
         
-        if "bạn được tạo từ ai" in user_input.lower():
-            await message.channel.send("Tôi được tạo ra bởi Đỗ Anh Tuấn.")
-            return
+        response = requests.post(url, json=payload, headers=headers)
+        data = response.json()
         
-        try:
-            url = "https://api.mistral.ai/v1/chat/completions"
-            headers = {"Authorization": f"Bearer {MISTRAL_API_KEY}", "Content-Type": "application/json"}
-            payload = {"model": "mistral-7b-instruct", "messages": [{"role": "user", "content": user_input}]}
-            
-            response = requests.post(url, json=payload, headers=headers)
-            data = response.json()
-            
-            reply = data.get("choices", [{}])[0].get("message", {}).get("content", "⚠️ Không nhận được phản hồi từ API.")
-            await message.channel.send(reply)
-        except Exception as e:
-            print(f"❌ Lỗi Mistral API: {e}")
-            await message.channel.send("⚠️ Bot gặp lỗi khi gọi API Mistral. Hãy thử lại sau!")
-    else:
-        await message.channel.send("🤖 Xin chào! Hãy dùng lệnh `!ask` để hỏi tôi.")
+        reply = data.get("choices", [{}])[0].get("message", {}).get("content", "⚠️ Không nhận được phản hồi từ API.")
+        await ctx.send(reply)
+    except Exception as e:
+        print(f"❌ Lỗi Mistral API: {e}")
+        await ctx.send("⚠️ Bot gặp lỗi khi gọi API Mistral. Hãy thử lại sau!")
 
 # Chạy bot
 if __name__ == "__main__":
     print("🔄 Đang khởi động bot...")
     print(f"🔑 Token được sử dụng: {'Có' if DISCORD_BOT_TOKEN else 'Không có'}")
     client.run(DISCORD_BOT_TOKEN)
-
-
