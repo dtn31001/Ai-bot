@@ -50,13 +50,8 @@ async def ask(ctx, *, user_input: str = None):
         return
     
     try:
-        api_url = "http://195.179.229.119/gpt/api.php"
-        params = {
-            "prompt": user_input,
-            "api_key": OPENAI_API_KEY,
-            "model": "gpt-3.5-turbo"
-        }
-        response = requests.get(api_url, params=params)
+        api_url = f"http://195.179.229.119/gpt/api.php?prompt={requests.utils.quote(user_input)}&api_key={requests.utils.quote(OPENAI_API_KEY)}&model=gpt-3.5-turbo"
+        response = requests.get(api_url)
         response.raise_for_status()
         data = response.json()
         
