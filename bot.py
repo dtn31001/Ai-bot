@@ -38,7 +38,7 @@ async def on_message(message):
             return
         
         try:
-            model = genai.GenerativeModel("gemini-pro")
+            model = genai.GenerativeModel("gemini-2.0-flash")
             response = model.generate_content(user_input)
             reply = response.text if response.text else "⚠️ Không nhận được phản hồi từ API."
             await message.channel.send(reply)
