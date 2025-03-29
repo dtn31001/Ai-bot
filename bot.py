@@ -18,7 +18,7 @@ intents = discord.Intents.default()
 intents.messages = True  # Bật quyền đọc tin nhắn
 intents.message_content = True  # Bật quyền đọc nội dung tin nhắn
 client = commands.Bot(command_prefix="!", intents=intents)
-openai.api_key = OPENAI_API_KEY
+openai_client = openai.OpenAI(api_key=OPENAI_API_KEY)
 
 @client.event
 async def on_ready():
@@ -36,7 +36,7 @@ async def on_message(message):
             return
         
         try:
-            response = openai.ChatCompletion.create(
+            response = openai_client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[{"role": "user", "content": user_input}]
             )
