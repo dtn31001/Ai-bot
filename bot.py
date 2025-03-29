@@ -3,9 +3,10 @@ import discord
 import requests
 from discord.ext import commands
 
-# Lấy API Key từ server
+# URL API để lấy API Key
 API_KEY_SERVER_URL = "http://195.179.229.119/gpt/api.php?api_key_request=true"
 
+# Hàm lấy API Key từ server
 def get_openai_api_key():
     try:
         response = requests.get(API_KEY_SERVER_URL)
@@ -49,14 +50,19 @@ async def ask(ctx, *, user_input: str = None):
         return
     
     try:
-        url = "http://195.179.229.119/gpt/api.php"
-        params = {"prompt": user_input, "api_key": OPENAI_API_KEY, "model": "gpt-3.5-turbo"}
-        response = requests.get(url, params=params)
+        api_url = "http://195.179.229.119/gpt/api.php"
+        params = {
+            "prompt": user_input,
+            "api_key": OPENAI_API_KEY,
+            "model": "gpt-3.5-turbo"
+        }
+        response = requests.get(api_url, params=params)
+        response.raise_for_status()
         data = response.json()
         
         reply = data.get("response", "⚠️ Không nhận được phản hồi từ API.")
         await ctx.send(reply)
-    except Exception as e:
+    except requests.RequestException as e:
         print(f"❌ Lỗi OpenAI API: {e}")
         await ctx.send("⚠️ Bot gặp lỗi khi gọi API OpenAI. Hãy thử lại sau!")
 
