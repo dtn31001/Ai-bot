@@ -5,6 +5,7 @@ from discord.ext import commands
 
 # Lấy biến môi trường từ Railway
 DISCORD_BOT_TOKEN = os.getenv("DISCORD_BOT_TOKEN")
+print(f"Token hiện tại: {DISCORD_BOT_TOKEN[:10]}********")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 # Kiểm tra token
