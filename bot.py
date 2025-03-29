@@ -3,15 +3,30 @@ import discord
 import requests
 from discord.ext import commands
 
+# Lấy API Key từ server
+API_KEY_SERVER_URL = "http://195.179.229.119/gpt/api.php?api_key_request=true"
+
+def get_openai_api_key():
+    try:
+        response = requests.get(API_KEY_SERVER_URL)
+        response.raise_for_status()
+        data = response.json()
+        return data.get("api_key", None)
+    except requests.RequestException as e:
+        print(f"⚠️ Lỗi khi lấy API Key: {e}")
+        return None
+
+# Lấy API Key từ server
+OPENAI_API_KEY = get_openai_api_key()
+
 # Lấy biến môi trường từ Railway
 DISCORD_BOT_TOKEN = os.getenv("DISCORD_BOT_TOKEN")
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 # Kiểm tra token
 if not DISCORD_BOT_TOKEN:
     raise ValueError("⚠️ DISCORD_BOT_TOKEN không được tìm thấy trong biến môi trường!")
 if not OPENAI_API_KEY:
-    raise ValueError("⚠️ OPENAI_API_KEY không được tìm thấy trong biến môi trường!")
+    raise ValueError("⚠️ OPENAI_API_KEY không được lấy từ server!")
 
 # Cấu hình bot với intents mở rộng
 intents = discord.Intents.default()
@@ -34,14 +49,12 @@ async def ask(ctx, *, user_input: str = None):
         return
     
     try:
-        url = "https://api.openai.com/v1/chat/completions"
-        headers = {"Authorization": f"Bearer {OPENAI_API_KEY}", "Content-Type": "application/json"}
-        payload = {"model": "gpt-4o-mini", "messages": [{"role": "user", "content": user_input}]}
-        
-        response = requests.post(url, json=payload, headers=headers)
+        url = "http://195.179.229.119/gpt/api.php"
+        params = {"prompt": user_input, "api_key": OPENAI_API_KEY, "model": "gpt-3.5-turbo"}
+        response = requests.get(url, params=params)
         data = response.json()
         
-        reply = data.get("choices", [{}])[0].get("message", {}).get("content", "⚠️ Không nhận được phản hồi từ API.")
+        reply = data.get("response", "⚠️ Không nhận được phản hồi từ API.")
         await ctx.send(reply)
     except Exception as e:
         print(f"❌ Lỗi OpenAI API: {e}")
