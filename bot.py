@@ -36,7 +36,7 @@ async def ask(ctx, *, user_input: str = None):
     try:
         url = "https://api.openai.com/v1/chat/completions"
         headers = {"Authorization": f"Bearer {OPENAI_API_KEY}", "Content-Type": "application/json"}
-        payload = {"model": "gpt-4o", "messages": [{"role": "user", "content": user_input}]}
+        payload = {"model": "gpt-4o-mini", "messages": [{"role": "user", "content": user_input}]}
         
         response = requests.post(url, json=payload, headers=headers)
         data = response.json()
