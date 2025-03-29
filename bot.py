@@ -36,7 +36,7 @@ async def ask(ctx, *, user_input: str = None):
     try:
         url = "https://api.mistral.ai/v1/chat/completions"
         headers = {"Authorization": f"Bearer {MISTRAL_API_KEY}", "Content-Type": "application/json"}
-        payload = {"model": "mistral-large-latest", "messages": [{"role": "user", "content": user_input}]}
+        payload = {"model": "codestral-latest", "messages": [{"role": "user", "content": user_input}]}
         
         response = requests.post(url, json=payload, headers=headers)
         data = response.json()
