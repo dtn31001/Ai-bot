@@ -5,7 +5,6 @@ from discord.ext import commands
 
 # Lấy biến môi trường từ Railway
 DISCORD_BOT_TOKEN = os.getenv("DISCORD_BOT_TOKEN")
-print(f"Token hiện tại: {DISCORD_BOT_TOKEN[:10]}********")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 # Kiểm tra token
@@ -30,15 +29,24 @@ async def on_message(message):
     if message.author == client.user:
         return
     
-    try:
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=[{"role": "user", "content": message.content}]
-        )
-        await message.channel.send(response["choices"][0]["message"]["content"])
-    except Exception as e:
-        print(f"❌ Lỗi OpenAI API: {e}")
-        await message.channel.send("⚠️ Bot gặp lỗi khi gọi API OpenAI. Hãy thử lại sau!")
+    if message.content.lower().startswith("!ask"):
+        user_input = message.content[5:].strip()
+        if not user_input:
+            await message.channel.send("⚠️ Vui lòng nhập câu hỏi sau lệnh !ask")
+            return
+        
+        try:
+            response = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo",
+                messages=[{"role": "user", "content": user_input}]
+            )
+            reply = response.choices[0].message.content
+            await message.channel.send(reply)
+        except Exception as e:
+            print(f"❌ Lỗi OpenAI API: {e}")
+            await message.channel.send("⚠️ Bot gặp lỗi khi gọi API OpenAI. Hãy thử lại sau!")
+    else:
+        await message.channel.send("🤖 Xin chào! Hãy dùng lệnh `!ask` để hỏi tôi.")
 
 # Chạy bot
 if __name__ == "__main__":
